@@ -35,12 +35,10 @@ public class NetUtil {
 	public static String cookie = "";
 	// 存储URL文件的长度
 	public static long contentLength = 0;
-	
-	// HTTP Header常量
-	private static final String CONTENTTYPE = "Content-Type";
-	private static final String USERAGENT = "User-Agent";
-	private static final String HOST = "Host";
-	private static final String COOKIE = "Cookie";
+
+
+	public static final String GET = "GET";
+	public static final String POST = "POST";
 
 	/**
 	 * 判断网络是否连通
@@ -114,7 +112,6 @@ public class NetUtil {
 	 * @return
 	 */
 	public static boolean isReachable(String hostIp) {
-		// TODO Auto-generated method stub
 		try {
 			InetAddress address = InetAddress.getByName(hostIp);
 			
@@ -122,15 +119,18 @@ public class NetUtil {
 			System.out.println(reachable);
 			return reachable;
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
 	}
+
+    protected static String getParamsEncoding() {
+        return "UTF-8";
+    }
+
 	
 	/**
 	 * 根据url去获取一个图片
@@ -161,239 +161,6 @@ public class NetUtil {
 //			return null;
 //		}
 //	}
-
-	/**
-	 * 增加一个返回Stream的方法，具有通用性
-	 * 
-	 * @return 字节流
-	 */
-	public static InputStream getStream(String url, String cookie) {
-		URL resultUrl = null;
-		URLConnection conn = null;
-		InputStream is = null;
-		try {
-			resultUrl = new URL(url);
-			conn = resultUrl.openConnection();
-			conn.setRequestProperty("Cookie", cookie);
-			conn.connect();
-			is = conn.getInputStream();
-			// 取得响应头中的content-length
-			if (conn.getContentLength() != -1)
-				contentLength = conn.getContentLength();
-			if (is != null)
-				return is;
-			else
-				return null;
-		} catch (SocketTimeoutException e) {
-			e.printStackTrace();
-			System.out.println("connect time out...");
-			return null;
-		} catch (ConnectException e) {// Network is unreachable
-			e.printStackTrace();
-			System.out.println("connect exception..." + e);
-			return null;
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			System.out.println("spec could not be parsed as a URL...." + e);
-			return null;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			// 在此块中不要断开connection连接，也不要关闭InputStream流，否则接收不到数据提示BuffedInputStream
-			// is closed
-			// if(conn != null)
-			// ((HttpURLConnection)conn).disconnect();
-			// if(is != null){
-			// try {
-			// is.close();
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// }
-			// }
-		}
-	}
-
-	/**
-	 * 根据指定的url请求数据，使用java 提供的http get请求方式
-	 * 
-	 * @param url
-	 *            包含数据的url
-	 * @return 返回一个字符串
-	 */
-	public static String getRequest(String url) {
-		if (url == null || url.length() <= 0) {
-			return "url can not be null!";
-		}
-		StringBuilder result = new StringBuilder();
-		URL weburl = null;
-		HttpURLConnection urlcon = null;
-		InputStreamReader isr = null;
-		try {
-			weburl = new URL(url);
-			urlcon = (HttpURLConnection) weburl.openConnection();
-			urlcon.setConnectTimeout(25000);// 超时时间为25秒
-			isr = new InputStreamReader(urlcon.getInputStream());
-			BufferedReader bufReader = new BufferedReader(isr);
-			String tmp = null;
-			if (urlcon.getResponseCode() == 200) {
-				// 新增一句取得cookie的代码，蹩脚。加上一个null的验证，如果用户登录失败则Set-Cookie返回null
-				if (urlcon.getHeaderField("Set-Cookie") != null) {
-					cookie = urlcon.getHeaderField("Set-Cookie").split(";")[0];
-					// Const.COOKIE =
-					// urlcon.getHeaderField("Set-Cookie").split(";")[0];
-				}
-				while ((tmp = bufReader.readLine()) != null) {
-					result.append(tmp);
-				}
-			}
-		} catch (SocketTimeoutException e) {
-			e.printStackTrace();
-			System.out.println("connect time out...");
-			return "-1";
-		} catch (ConnectException e) {// Network is unreachable
-			e.printStackTrace();
-			System.out.println("connect exception..." + e);
-		}catch (FileNotFoundException e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-			System.out.println(e.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (urlcon != null)
-				urlcon.disconnect();
-			try {
-				if (isr != null)// 防止Null Pointer Exception空指针
-					isr.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		if (!result.equals("")) {
-			return result.toString();
-		} else {
-			return "";
-		}
-	}
-
-	/**
-	 * 发送注册请求 根据指定的url请求数据，使用java 提供的http get请求方式
-	 * 
-	 * @param url
-	 *            包含数据的url
-	 * @return 返回一个字符串
-	 */
-	public static String getRequest(String url, String cookie) {
-		if (url == null || url.length() <= 0) {
-			return "url can not be null!";
-		}
-		StringBuilder result = new StringBuilder();
-		URL weburl = null;
-		HttpURLConnection urlcon = null;
-		InputStreamReader isr = null;
-		try {
-			weburl = new URL(url);
-			urlcon = (HttpURLConnection) weburl.openConnection();
-			urlcon.setConnectTimeout(25000);// 超时时间为25秒
-			urlcon.setRequestProperty("Cookie", cookie);
-			isr = new InputStreamReader(urlcon.getInputStream());
-			BufferedReader bufReader = new BufferedReader(isr);
-			String tmp = null;
-			while ((tmp = bufReader.readLine()) != null) {
-				result.append(tmp);
-			}
-		} catch (SocketTimeoutException e) {
-			e.printStackTrace();
-			System.out.println("connect time out...");
-			return "SocketTimeoutException";
-		} catch (ConnectException e) {// Network is unreachable
-			e.printStackTrace();
-			// System.out.println("connect exception..."+e);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (urlcon != null)
-				urlcon.disconnect();
-			try {
-				if (isr != null)// 防止Null Pointer Exception空指针
-					isr.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		if (!result.equals("")) {
-			return result.toString();
-		} else {
-			return "";
-		}
-	}
-
-	/**
-	 * 发送注册请求 根据指定的url请求数据，使用java 提供的http get请求方式
-	 * 
-	 * @param url
-	 *            包含数据的url
-	 * @return 返回一个字符串
-	 */
-	/*public static String getReqJ(String url, Map headers) {
-		final String CONTENTTYPE = "Content-Type";
-		final String USERAGENT = "User-Agent";
-		final String HOST = "Host";
-		final String COOKIE = "Cookie";
-		if (url == null || url.length() <= 0) {
-			return "url can not be null!";
-		}
-		StringBuilder result = new StringBuilder();
-		URL weburl = null;
-		HttpURLConnection urlcon = null;
-		InputStreamReader isr = null;
-		try {
-			weburl = new URL(url);
-			urlcon = (HttpURLConnection) weburl.openConnection();
-			urlcon.setConnectTimeout(25000);// 超时时间为25秒
-			urlcon.setRequestProperty(CONTENTTYPE, headers.get(CONTENTTYPE).toString());
-			urlcon.setRequestProperty(USERAGENT, headers.get(USERAGENT).toString());
-			urlcon.setRequestProperty(HOST, headers.get(HOST).toString());
-			urlcon.setRequestProperty(COOKIE, headers.get(COOKIE).toString());
-			// urlcon.setRequestProperty("Content-Type",
-			// "application/x-www-form-urlencoded");
-			// urlcon.addRequestProperty("User-Agent",
-			// "Mozilla/5.0 (Windows NT 6.3; WOW64) Trident/7.0; rv:11.0");
-			// urlcon.addRequestProperty("Host", "192.168.0.104:9090");
-			// urlcon.addRequestProperty("Cookie",
-			// "JSESSIONID=1kmid7132cm6p1neugg08tuk7l");
-			isr = new InputStreamReader(urlcon.getInputStream());
-			BufferedReader bufReader = new BufferedReader(isr);
-			String tmp = null;
-			while ((tmp = bufReader.readLine()) != null) {
-				result.append(tmp);
-			}
-		} catch (SocketTimeoutException e) {
-			e.printStackTrace();
-			//L.w("connect time out...");
-			return "-1";
-		} catch (ConnectException e) {// Network is unreachable
-			e.printStackTrace();
-			//L.w("connect exception..." + e);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (urlcon != null)
-				urlcon.disconnect();
-			try {
-				if (isr != null)// 防止Null Pointer Exception空指针
-					isr.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		if (!result.equals("")) {
-			return result.toString();
-		} else {
-			return "";
-		}
-	}*/
 	
 	/**
 	 * 发送注册请求 根据指定的url请求数据，使用java 提供的http get请求方式
@@ -402,7 +169,7 @@ public class NetUtil {
 	 *            包含数据的url
 	 * @return 返回一个字符串
 	 */
-	public static String getReqJ(String url, Map headers) {
+	public static String getReqJ(String url, Map<String, String> headers) {
 		if (url == null || url.length() <= 0) {
 			return "url can not be null!";
 		}
@@ -416,22 +183,24 @@ public class NetUtil {
 			urlcon.setConnectTimeout(25000);// 超时时间为25秒
 			
 			//set request property
-			Iterator<Entry<String, String>> iter = headers.entrySet().iterator();
-			Entry<String, String> entry;
-			String key;
-			String value;
-			while (iter.hasNext()) {
+            if (headers != null){
+                Iterator<Entry<String, String>> it = headers.entrySet().iterator();
+                Entry<String, String> entry;
+                String key;
+                String value;
+                while (it.hasNext()) {
 
-			    entry = iter.next();
+                    entry = it.next();
 
-			    key = entry.getKey();
+                    key = entry.getKey();
 
-			    value = entry.getValue();
-			    //System.out.println(key+":"+value);
-			    urlcon.setRequestProperty(key, value);
-			}
-			//System.out.println(headers);
-			
+                    value = entry.getValue();
+                    //System.out.println(key+":"+value);
+                    urlcon.setRequestProperty(key, value);
+                }
+                //System.out.println(headers);
+            }
+
 			
 			isr = new InputStreamReader(urlcon.getInputStream());
 			BufferedReader bufReader = new BufferedReader(isr);
@@ -468,65 +237,21 @@ public class NetUtil {
 	/**
 	 * 根据指定的url请求数据，使用java 提供的http get请求方式
 	 * 
-	 * @param url
-	 *            包含数据的url
-	 * @param cookie
-	 *            用户的cookie
+	 * @param url 包含数据的url
+     *
 	 * @return 返回一个字符串
 	 */
-	public static String getReqJ(String url, String cookie) {
-		if (url == null || url.length() <= 0) {
-			return "url can not be null!";
-		}
-		StringBuilder result = new StringBuilder();
-		URL weburl = null;
-		HttpURLConnection urlcon = null;
-		InputStreamReader isr = null;
-		try {
-			weburl = new URL(url);
-			urlcon = (HttpURLConnection) weburl.openConnection();
-			urlcon.addRequestProperty("Cookie", cookie);
-			urlcon.setConnectTimeout(25000);// 超时时间为25秒
-			isr = new InputStreamReader(urlcon.getInputStream());
-			BufferedReader bufReader = new BufferedReader(isr);
-			String tmp = null;
-			while ((tmp = bufReader.readLine()) != null) {
-				result.append(tmp);
-			}
-		} catch (SocketTimeoutException e) {
-			e.printStackTrace();
-			System.out.println("connect time out...");
-			return "-1";
-		} catch (ConnectException e) {// Network is unreachable
-			e.printStackTrace();
-			System.out.println("connect exception..." + e);
-			return "-2";
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (urlcon != null)
-				urlcon.disconnect();
-			try {
-				if (isr != null)// 防止Null Pointer Exception空指针
-					isr.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		if (!result.equals("")) {
-			return result.toString();
-		} else {
-			return "";
-		}
+	public static String getReqJ(String url) {
+		return getReqJ(url, null);
 	}
 
-	/**
-	 * 根据指定的url请求数据，使用apache 提供的http get请求方式
-	 * 
-	 * @param url
-	 *            包含数据的url
-	 * @return 返回一个字符串
-	 */
+//	/**
+//	 * 根据指定的url请求数据，使用apache 提供的http get请求方式
+//	 *
+//	 * @param url
+//	 *            包含数据的url
+//	 * @return 返回一个字符串
+//	 */
 //	public static String getReqA(String url) {
 //		String resultData = "";
 //		// HttpGet连接对象
@@ -571,61 +296,116 @@ public class NetUtil {
 		System.out.println(mapKV);
 		return mapKV;
 	}
-	
-	/**
-	 * URL的Map参数进行URL编码
-	 * @param params
-	 * @return
-	 */
-	public static String encodeUrlParams(Map<String, String> params) {
-		if (params==null) {
-			return "";
-		}
-		StringBuilder sb = new StringBuilder();
-		Iterator<Map.Entry<String, String>> iter = params.entrySet().iterator();
 
-		Map.Entry<String, String> entry;
-		String key;
-		String value;
-		int i=0;
-		while (iter.hasNext()) {
+    /**
+     * URL的Map参数进行URL编码
+     *
+     * @param params
+     * @return
+     */
+    public static String encodeUrlParams(Map<String, String> params) {
+        if (params == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        Iterator<Map.Entry<String, String>> iter = params.entrySet().iterator();
 
-			entry = iter.next();
+        Map.Entry<String, String> entry;
+        String key;
+        String value;
+        int i = 0;
+        while (iter.hasNext()) {
 
-			key = entry.getKey();
+            entry = iter.next();
 
-			value = entry.getValue();
-			//System.out.println(key+":"+value);
-			try {
-				value = URLEncoder.encode(value, "UTF8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-//			if (i==0) {
-//				sb.append("?");
-//			}
-			sb.append(key).append("=").append(value);
-			if (i<params.size()-1) {
-				sb.append("&");
-			}
-			i++;
-		}
-		String result = sb.toString();
-		System.out.println("编码后的参数:"+result);
-		//Log.d("params", "编码后的参数:"+result);
-		return result;
-	}
+            key = entry.getKey();
+
+            value = entry.getValue();
+            //System.out.println(key+":"+value);
+            try {
+                key = URLEncoder.encode(key, getParamsEncoding());
+                value = URLEncoder.encode(value, getParamsEncoding());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            sb.append(key).append("=").append(value);
+            if (i < params.size() - 1) {
+                sb.append("&");
+            }
+            i++;
+        }
+        String result = sb.toString();
+        System.out.println("编码后的参数:" + result);
+        //Log.d("params", "编码后的参数:"+result);
+        return result;
+    }
+
+    /**
+     * URL的Map参数进行URL编码
+     *
+     * @param params
+     * @param paramsEncoding
+     * @return
+     */
+    public static byte[] encodeUrlParams(Map<String, String> params, String paramsEncoding) {
+        if (params == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        Iterator<Map.Entry<String, String>> iter = params.entrySet().iterator();
+
+        Map.Entry<String, String> entry;
+        String key;
+        String value;
+
+        try {
+            while (iter.hasNext()) {
+
+                entry = iter.next();
+
+                key = entry.getKey();
+
+                value = entry.getValue();
+
+                key = URLEncoder.encode(key, paramsEncoding);
+
+                value = URLEncoder.encode(value, paramsEncoding);
+                sb.append(key).append("=").append(value).append("&");
+                //System.out.println(key+":"+value);
+            }
+            String result = sb.toString();
+            System.out.println("编码后的参数:" + result);
+            return result.getBytes(paramsEncoding);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Encoding not supported: " + paramsEncoding, e);
+        }
+        //Log.d("params", "编码后的参数:"+result);
+    }
+
+    /**
+     * 根据url和参数发送post请求
+     * @param url
+     * @param params
+     * @return
+     */
+    public static String postReqJ(String url, String params){
+        return postReqJ(url, params, null);
+    }
+
 	/**
 	 * HTTP POST REQUEST
 	 * 
 	 * @param url
 	 *            请求url
-	 * @param content
+	 * @param params
 	 *            post的内容
+     * @param headers 请求头
 	 */
-	public static String postReqJ(String url, String content, Map headers) {
+	public static String postReqJ(String url, String params, Map<String, String> headers) {
+        return postReqJ(url, stringParamsToMap(params), headers);
 
-		try {
+		/*try {
 			// Post请求的url，与get不同的是不需要带参数
 			URL postUrl = new URL(url);
 			// 打开连接
@@ -654,10 +434,6 @@ public class NetUtil {
 			// 仅作用于当前函数
 			connection.setInstanceFollowRedirects(true);
 			if (headers != null) {
-//				connection.setRequestProperty(CONTENTTYPE, headers.get(CONTENTTYPE).toString());
-//				connection.setRequestProperty(USERAGENT, headers.get(USERAGENT).toString());
-//				connection.setRequestProperty(HOST, headers.get(HOST).toString());
-//				connection.setRequestProperty(COOKIE, headers.get(COOKIE).toString());
 				
 				Iterator<Entry<String, String>> iter = headers.entrySet().iterator();
 
@@ -688,9 +464,9 @@ public class NetUtil {
 			DataOutputStream out = new DataOutputStream(
 					connection.getOutputStream());
 			// The URL-encoded content
-			//content = URLEncoder.encode(content, "UTF-8");
+			//params = URLEncoder.encode(params, "UTF-8");
 			// 正文，正文内容其实跟get的URL中'?'后的参数字符串一致
-			out.writeBytes(content);
+			out.writeBytes(params);
 			out.flush();
 			out.close();// flush and close
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -727,7 +503,7 @@ public class NetUtil {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
-		}
+		}*/
 	}
 	
 	/**
@@ -735,17 +511,14 @@ public class NetUtil {
 	 * 
 	 * @param url
 	 *            请求地址
-	 * @param content
+	 * @param params
 	 *            请求内容
 	 * @param headers
 	 *            HTTP header
 	 * @return
 	 */
-	public static String postReqJ(String url, Map content, Map headers) {
-		final String CONTENTTYPE = "Content-Type";
-		final String USERAGENT = "User-Agent";
-		final String HOST = "Host";
-		final String COOKIE = "Cookie";
+	public static String postReqJ(String url, Map params, Map headers) {
+
 		try {
 			// Post请求的url，与get不同的是不需要带参数
 			URL postUrl = new URL(url);
@@ -779,20 +552,17 @@ public class NetUtil {
 			// the connection. Settings above must be set before connect!
 			// 配置本次连接的Content-type，配置为application/x-www-form-urlencoded的
 			// 意思是正文是urlencoded编码过的form参数，下面我们可以看到我们对正文内容使用URLEncoder.encode进行编码
+            connection.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
 			if (headers != null) {
-//				connection.setRequestProperty(CONTENTTYPE, headers.get(CONTENTTYPE).toString());
-//				connection.setRequestProperty(USERAGENT, headers.get(USERAGENT).toString());
-//				connection.setRequestProperty(HOST, headers.get(HOST).toString());
-//				connection.setRequestProperty(COOKIE, headers.get(COOKIE).toString());
-				
-				Iterator<Entry<String, String>> iter = headers.entrySet().iterator();
+				Iterator<Entry<String, String>> it = headers.entrySet().iterator();
 
 				Entry<String, String> entry;
 				String key;
 				String value;
-				while (iter.hasNext()) {
+				while (it.hasNext()) {
 
-				    entry = iter.next();
+				    entry = it.next();
 
 				    key = entry.getKey();
 
@@ -801,31 +571,41 @@ public class NetUtil {
 				    connection.setRequestProperty(key, value);
 				}
 			}
-			connection.setRequestProperty("client-info", "userID=6&version=832&phoneModel=nokia");
+
 			// 连接，从postUrl.openConnection()至此的配置必须要在connect之前完成
 			// 要注意的是connection.getOutputStream会隐含的进行connect
 			connection.connect();
 			DataOutputStream out = new DataOutputStream(connection.getOutputStream());
 			// The URL-encoded content
-			StringBuilder strContent = new StringBuilder();
-			// 正文，正文内容其k跟get的URL中'?'后的参数字符串一致
-			Iterator<Entry<String, String>> it = content.entrySet().iterator();
-			int position = 0;
-			while (it.hasNext()) {
-				Map.Entry<String, String> entry = it.next();
-				String key = entry.getKey();
-				String value = entry.getValue();
-				if (position == content.size() - 1)
-					strContent.append(key + "=" + value);
-				else
-					strContent.append(key + "=" + value + "&");
-				position++;
-			}
-			out.writeBytes(URLEncoder.encode(strContent.toString(), "UTF-8"));
-			out.flush();
-			out.close();// flush and close
-			int code = connection.getResponseCode();
-			System.out.println(strContent);
+//			StringBuilder sbParams = new StringBuilder();
+//            if (params != null) {
+//                // 正文，正文内容其k跟get的URL中'?'后的参数字符串一致
+//                Iterator<Entry<String, String>> it = params.entrySet().iterator();
+//                int position = 0;
+//                while (it.hasNext()) {
+//                    Map.Entry<String, String> entry = it.next();
+//                    String key = entry.getKey();
+//                    String value = entry.getValue();
+//                    if (position == params.size() - 1) {
+//                        sbParams.append(key).append("=").append(value);
+//                    }else {
+//                        sbParams.append(key).append("=").append(value).append("&");
+//                    }
+//                    position++;
+//                }
+//                final String encodeParams = URLEncoder.encode(sbParams.toString(), "UTF-8");
+//                out.writeBytes(encodeParams);
+//                System.out.println(sbParams.toString());
+//                System.out.println(encodeParams);
+//            }
+
+            if(params != null){
+                out.write(encodeUrlParams(params, getParamsEncoding()));
+            }
+
+            out.flush();
+            out.close();// flush and close
+            int code = connection.getResponseCode();
 			System.out.println("ResponseCode:" + code);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));// 设置编码,否则中文乱码
 			// 字符串连接改为StringBuilder提高效率
