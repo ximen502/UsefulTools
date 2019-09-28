@@ -171,38 +171,12 @@ public class NetUtil {
 	 */
 	public static String getReqJ(String url, Map<String, String> headers) {
 		if (url == null || url.length() <= 0) {
-			return "url can not be null!";
+			throw new RuntimeException("url can not be null or empty");
 		}
 		StringBuilder result = new StringBuilder();
-		URL weburl = null;
-		HttpURLConnection urlcon = null;
 		InputStreamReader isr = null;
 		try {
-			weburl = new URL(url);
-			urlcon = (HttpURLConnection) weburl.openConnection();
-			urlcon.setConnectTimeout(25000);// 超时时间为25秒
-			
-			//set request property
-            if (headers != null){
-                Iterator<Entry<String, String>> it = headers.entrySet().iterator();
-                Entry<String, String> entry;
-                String key;
-                String value;
-                while (it.hasNext()) {
-
-                    entry = it.next();
-
-                    key = entry.getKey();
-
-                    value = entry.getValue();
-                    //System.out.println(key+":"+value);
-                    urlcon.setRequestProperty(key, value);
-                }
-                //System.out.println(headers);
-            }
-
-			
-			isr = new InputStreamReader(urlcon.getInputStream());
+			isr = new InputStreamReader(getReqJStream(url, headers));
 			BufferedReader bufReader = new BufferedReader(isr);
 			String tmp = null;
 			while ((tmp = bufReader.readLine()) != null) {
@@ -210,7 +184,6 @@ public class NetUtil {
 			}
 		} catch (SocketTimeoutException e) {
 			e.printStackTrace();
-			//L.w("connect time out...");
 			return "-1";
 		} catch (ConnectException e) {// Network is unreachable
 			e.printStackTrace();
@@ -218,8 +191,6 @@ public class NetUtil {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (urlcon != null)
-				urlcon.disconnect();
 			try {
 				if (isr != null)// 防止Null Pointer Exception空指针
 					isr.close();
@@ -227,11 +198,49 @@ public class NetUtil {
 				e.printStackTrace();
 			}
 		}
-		if (!result.equals("")) {
-			return result.toString();
-		} else {
-			return "";
+		return result.toString();
+	}
+
+	/**
+	 * 发送注册请求 根据指定的url请求数据，使用java 提供的http get请求方式
+	 *
+	 * @param url 包含数据的url
+	 * @return 返回一个输入流
+	 */
+	public static InputStream getReqJStream(String url, Map<String, String> headers) {
+		if (url == null || url.length() <= 0) {
+			throw new RuntimeException("url can not be null or empty");
 		}
+		URL weburl = null;
+		HttpURLConnection urlcon = null;
+		try {
+			weburl = new URL(url);
+			urlcon = (HttpURLConnection) weburl.openConnection();
+			urlcon.setConnectTimeout(25000);// 超时时间为25秒
+
+			//set request property
+			if (headers != null){
+				Iterator<Entry<String, String>> it = headers.entrySet().iterator();
+				Entry<String, String> entry;
+				String key;
+				String value;
+				while (it.hasNext()) {
+
+					entry = it.next();
+
+					key = entry.getKey();
+
+					value = entry.getValue();
+					//System.out.println(key+":"+value);
+					urlcon.setRequestProperty(key, value);
+				}
+			}
+
+			return urlcon.getInputStream();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	/**
