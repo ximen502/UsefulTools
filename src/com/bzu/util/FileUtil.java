@@ -200,7 +200,7 @@ public class FileUtil {
     
     /**
      * 从windows风格路径中提取文件名
-     * @param 包含文件名的路径 e.g. D:\\ok.jpg
+     * @param url 包含文件名的路径 e.g. D:\\ok.jpg
      * @return 返回文件名字符串  e.g.ok.jpg
      */
     public static String getFileNamefromLocalPath(String url){
