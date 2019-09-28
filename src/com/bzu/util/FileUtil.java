@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
+import java.util.Map;
 
 public class FileUtil {
 	/**
@@ -247,4 +248,36 @@ public class FileUtil {
 		}
 		return md5;
 	}
+
+    /**
+     * 根据提供的文件url，请求头，下载文件夹路径，进行文件的下载，文件名命名为url中的文件名
+     * @param url e.g. http://www.ok.com/name.zip, file name will be name.zip
+     * @param headers
+     * @param strDir
+     */
+    public static void download(String url, Map<String, String> headers, String strDir){
+        try {
+            if (strDir==null || strDir.length()==0) {
+                throw new RuntimeException("文件夹路径不可为空");
+            }
+            File dir = new File(strDir);
+            if(!dir.exists()){
+                boolean mk = dir.mkdirs();
+                if (!mk) {
+                    throw new RuntimeException("创建文件夹失败");
+                }
+            }
+            InputStream is = NetUtil.getReqJStream(url, headers);
+            FileOutputStream fos = new FileOutputStream(new File(dir, FileUtil.getFileNamefromUrl(url)));
+            int len=0;
+            byte[] buf = new byte[4096];
+            while((len = is.read(buf))!=-1){
+                fos.write(buf, 0, len);
+            }
+            fos.close();
+            is.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
