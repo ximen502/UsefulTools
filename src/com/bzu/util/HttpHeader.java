@@ -1,5 +1,11 @@
 package com.bzu.util;
 
+/**
+ * 常用请求头的key
+ *
+ * @author xsc
+ *
+ */
 public class HttpHeader {
 	/*HTTP Request Header Key*/
 	public static final String Accept="Accept";
@@ -18,4 +24,11 @@ public class HttpHeader {
 	public static final String Origin = "Origin";
 	public static final String Upgrade_Insecure_Requests = "Upgrade-Insecure-Requests";
 
+	/**
+	 * 返回一个默认的User-Agent
+	 * @return
+	 */
+	public static String getUsrAgt(){
+		return "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3732.400 QQBrowser/10.5.3819.400";
+	}
 }
