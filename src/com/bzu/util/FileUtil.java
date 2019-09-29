@@ -86,15 +86,24 @@ public class FileUtil {
 		
 		return res;
 	}
-	
+
 	/**
-	 * 根据一个绝对路径将字符串写入一个文本文件
-	 * @param fileName 一个文件的绝对路径 
+	 * 根据一个绝对路径将字符串用UTF-8编码写入一个文本文件
+	 * @param absolutePath 一个文件的绝对路径
 	 * @param message 要写入的字符串内容
 	 */
-	public static void writeTxtFileSdcard(String fileName, String message, String charSet) {
+	public static void writeTxtFileSdcard(String absolutePath, String message) {
+		writeTxtFileSdcard(absolutePath, message, "UTF-8");
+	}
+
+	/**
+	 * 根据一个绝对路径将字符串写入一个文本文件
+	 * @param absolutePath 一个文件的绝对路径
+	 * @param message 要写入的字符串内容
+	 */
+	public static void writeTxtFileSdcard(String absolutePath, String message, String charSet) {
 		if(message==null||message.length()==0){return;}
-		File f = new File(fileName);
+		File f = new File(absolutePath);
 		if(f.exists()){//
 			final File to = new File(f.getAbsolutePath()+System.currentTimeMillis());
 			f.renameTo(to);
@@ -102,7 +111,10 @@ public class FileUtil {
 			System.out.println(f.toString()+" delete?"+folder);
 		}
 		if (!f.getParentFile().exists()) {
-			f.getParentFile().mkdirs();
+			boolean mk = f.getParentFile().mkdirs();
+			if (!mk) {
+				throw new RuntimeException("创建文件夹失败");
+			}
 		}
 		try {
 			FileOutputStream fout = new FileOutputStream(f);
