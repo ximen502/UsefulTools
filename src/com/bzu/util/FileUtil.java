@@ -261,35 +261,74 @@ public class FileUtil {
 		return md5;
 	}
 
-    /**
-     * 根据提供的文件url，请求头，下载文件夹路径，进行文件的下载，文件名命名为url中的文件名
-     * @param url e.g. http://www.ok.com/name.zip, file name will be name.zip
-     * @param headers
-     * @param strDir
-     */
-    public static void download(String url, Map<String, String> headers, String strDir){
-        try {
-            if (strDir==null || strDir.length()==0) {
-                throw new RuntimeException("文件夹路径不可为空");
-            }
-            File dir = new File(strDir);
-            if(!dir.exists()){
-                boolean mk = dir.mkdirs();
-                if (!mk) {
-                    throw new RuntimeException("创建文件夹失败");
-                }
-            }
-            InputStream is = NetUtil.getReqJStream(url, headers);
-            FileOutputStream fos = new FileOutputStream(new File(dir, FileUtil.getFileNamefromUrl(url)));
-            int len=0;
-            byte[] buf = new byte[4096];
-            while((len = is.read(buf))!=-1){
-                fos.write(buf, 0, len);
-            }
-            fos.close();
-            is.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	/**
+	 * 根据提供的文件url，请求头，下载文件夹路径，进行文件的下载，文件名命名为url中的文件名
+	 * @param url e.g. http://www.ok.com/name.zip, file name will be name.zip
+	 * @param headers
+	 * @param strDir
+	 */
+	public static void download(String url, Map<String, String> headers, String strDir){
+    	/*download(url, headers, strDir, new IfExist() {
+
+			@Override
+			public int how() {
+				return IfExist.OVERRIDE_IT;
+			}
+		});*/
+
+		download(url, headers, strDir, ()->IfExist.OVERRIDE_IT); //lamda
+	}
+
+
+	/**
+	 * 根据提供的文件url，请求头，下载文件夹路径，进行文件的下载，文件名命名为url中的文件名
+	 * @param url e.g. http://www.ok.com/name.zip, file name will be name.zip
+	 * @param headers
+	 * @param strDir
+	 * @param ifExist
+	 */
+	public static void download(String url, Map<String, String> headers, String strDir, IfExist ifExist){
+		try {
+			if (strDir==null || strDir.length()==0) {
+				throw new RuntimeException("文件夹路径不可为空");
+			}
+			File dir = new File(strDir);
+			if(!dir.exists()){
+				boolean mk = dir.mkdirs();
+				if (!mk) {
+					throw new RuntimeException("创建文件夹失败");
+				}
+			}
+
+			File file = new File(dir, FileUtil.getFileNamefromUrl(url));
+			if (file.exists()) {//文件存在的处理方式，默认覆盖
+				if(ifExist.how() == IfExist.IGNORE_IT){
+					return;
+				}
+			}
+
+			InputStream is = NetUtil.getReqJStream(url, headers);
+			FileOutputStream fos = new FileOutputStream(file);
+			int len=0;
+			byte[] buf = new byte[4096];
+			while((len = is.read(buf))!=-1){
+				fos.write(buf, 0, len);
+			}
+			fos.close();
+			is.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 如果文件已经存在，如何处理
+	 * 1忽略
+	 * 2删除重新创建
+	 */
+	public interface IfExist{
+		public static final int IGNORE_IT = 0x1;
+		public static final int OVERRIDE_IT = 0x2;
+		int how();
+	}
 }
