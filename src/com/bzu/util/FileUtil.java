@@ -170,46 +170,53 @@ public class FileUtil {
 			}			
 		}
 	}
-	
+
 	/**
-     * 从url中提取文件名
-     * @param url 包含文件名的url
-     * @return 返回文件名字符串
-     */
-    public static String getFileNamefromUrl(String url){
-    	if(url == null){
-			return null;
+	 * 检查获取文件名的url是否为空
+	 * @param url
+	 */
+	private static void checkUrl(String url) {
+		if(url == null || url.length() == 0){
+			throw new RuntimeException("url 不能为空");
 		}
+	}
+
+	/**
+	 * 从url中提取文件名
+	 * @param url 包含文件名的url
+	 * @return 返回文件名字符串
+	 */
+	public static String getFileNamefromUrl(String url){
+		checkUrl(url);
 
 		String fileName = "";
 		int lastSlash = 0;// 最后一个"/"在字符串中的位置
-		for(int i=0;i<url.length();i++){
+		for (int i = url.length() - 1; i >= 0; i--) {
 			char c = url.charAt(i);
-			int ic = (int)c;
-			if(ic == 47){// 如果是"/"则记住它的位置
+			if (c == '/') {// 如果是"/"则记住它的位置
 				lastSlash = i;
+				break;
 			}
 		}
 		// 截取url中最后一个"/"之后的字符串作为文件名
 		fileName = url.substring(lastSlash + 1, url.length());
 		return fileName;
-    }
-    /**
-     * 从url中提取文件名
-     * @param url 包含文件名的url
-     * @return 返回文件名字符串
-     */
-    public static String getFileNamefromUrlPlus(String url){
-    	if(url == null){
-			return null;
-		}
+	}
+
+	/**
+	 * 从url中提取文件名
+	 * @param url 包含文件名的url
+	 * @return 返回文件名字符串
+	 */
+	public static String getFileNamefromUrlPlus(String url){
+		checkUrl(url);
 
 		String fileName = "";
-		int lastSlash = url.lastIndexOf("/");// 最后一个"/"在字符串中的位置
+		int lastSlash = url.lastIndexOf('/');// 最后一个"/"在字符串中的位置
 		// 截取url中最后一个"/"之后的字符串作为文件名
 		fileName = url.substring(lastSlash + 1, url.length());
 		return fileName;
-    }
+	}
     
     /**
      * 从windows风格路径中提取文件名
