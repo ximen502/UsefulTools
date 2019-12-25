@@ -57,33 +57,49 @@ public class FileUtil {
 	 * @return 返回文本文件中的字符串内容
 	 */
 	public static String readFileSdcard(String fileName) {
+		return readFileSdcard(fileName, false);
+	}
+
+	/**
+	 * 根据一个绝对路径读文件
+	 * @param fileName 文件的绝对路径
+	 * @param singleLine 结果是否保持一行
+	 * @return 返回文本文件中的字符串内容
+	 */
+	public static String readFileSdcard(String fileName, boolean singleLine) {
 		String res = "";
 		try {
-			InputStream is = new FileInputStream(fileName);
-			InputStreamReader isr = new InputStreamReader(is, "UTF8");
-			BufferedReader br = new BufferedReader(isr);
-			StringBuilder sb = new StringBuilder();
-			String t;
-			while((t = br.readLine())!=null){
-				sb.append(t);
+			if (singleLine) {// 合并为一行
+				InputStream is = new FileInputStream(fileName);
+				InputStreamReader isr = new InputStreamReader(is, "UTF8");
+				BufferedReader br = new BufferedReader(isr);
+				StringBuilder sb = new StringBuilder();
+				String t;
+				while((t = br.readLine())!=null){
+					sb.append(t);
+				}
+				is.close();
+				isr.close();
+				res = sb.toString();
+			} else { // 保持原来的行数
+				InputStream is = new FileInputStream(fileName);
+				StringBuilder result = new StringBuilder();
+				byte[] b = new byte[1024];
+				String temp = null;
+				int len = 0;
+				while ((len = is.read(b)) != -1) {
+					temp = new String(b, 0, len);
+					result.append(temp);
+				}
+				res = result.toString();
+				is.close();
 			}
-			is.close();
-			isr.close();
-			res = sb.toString();
-			
-//			FileInputStream fin = new FileInputStream(fileName);
-//			int length = fin.available();
-//			byte[] buffer = new byte[length];
-//			fin.read(buffer);
-//			res = EncodingUtils.getString(buffer, "UTF-8");
-//			fin.close();
-//			buffer = null;
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			// Toast.makeText(context, "加载错误。。。", 0).show();
 			System.out.print("读取数据失败");
 		}
-		
+
 		return res;
 	}
 
