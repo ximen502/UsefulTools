@@ -161,26 +161,48 @@ public class NetUtil {
 //			return null;
 //		}
 //	}
-	
+
 	/**
-	 * 发送注册请求 根据指定的url请求数据，使用java 提供的http get请求方式
-	 * 
+	 * 发送请求
 	 * @param url
-	 *            包含数据的url
-	 * @return 返回一个字符串
+	 * @param headers
+	 * @return
 	 */
 	public static String getReqJ(String url, Map<String, String> headers) {
+		return getReqJ(url, headers, false);
+	}
+
+	/**
+	 * 发送请求 根据指定的url请求数据，使用java 提供的http get请求方式
+	 * @param url
+	 * @param headers
+	 * @param singleLine 返回的字符串结果是否要单行显示（默认false保持原行数）
+	 * @return 返回一个字符串
+	 */
+	private static String getReqJ(String url, Map<String, String> headers, boolean singleLine) {
 		if (url == null || url.length() <= 0) {
 			throw new RuntimeException("url can not be null or empty");
 		}
 		StringBuilder result = new StringBuilder();
+		InputStream is = null;
 		InputStreamReader isr = null;
 		try {
-			isr = new InputStreamReader(getReqJStream(url, headers));
-			BufferedReader bufReader = new BufferedReader(isr);
-			String tmp = null;
-			while ((tmp = bufReader.readLine()) != null) {
+			if (singleLine) {// 去除换行
+				isr = new InputStreamReader(getReqJStream(url, headers));
+				BufferedReader bufReader = new BufferedReader(isr);
+				String tmp = null;
 				result.append(tmp);
+				while ((tmp = bufReader.readLine()) != null) {
+				}
+			} else {// 保留换行
+				is = getReqJStream(url, headers);
+				byte[] b = new byte[1024];
+				String temp = null;
+				int len = 0;
+				while ((len = is.read(b)) != -1) {
+					temp = new String(b, 0, len);
+					result.append(temp);
+				}
 			}
 		} catch (SocketTimeoutException e) {
 			e.printStackTrace();
@@ -194,6 +216,9 @@ public class NetUtil {
 			try {
 				if (isr != null)// 防止Null Pointer Exception空指针
 					isr.close();
+				if (is != null) {
+					is.close();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -202,7 +227,7 @@ public class NetUtil {
 	}
 
 	/**
-	 * 发送注册请求 根据指定的url请求数据，使用java 提供的http get请求方式
+	 * 发送请求 根据指定的url请求数据，使用java 提供的http get请求方式
 	 *
 	 * @param url 包含数据的url
 	 * @return 返回一个输入流
