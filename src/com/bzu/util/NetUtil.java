@@ -1,12 +1,6 @@
 package com.bzu.util;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -676,6 +670,101 @@ public class NetUtil {
 			e.printStackTrace();
 			//L.w("exception..." + e);
 			return null;
+		}
+	}
+
+	/**
+	 * 上传文件
+	 * @param params 相关参数
+	 * @param file 图片文件
+	 */
+	private void uploadFile(String uploadUrl, Map<String, String> params, File file) {
+		if(params==null) {
+			return;
+		}
+
+		final String CRLF = "\r\n";
+		final String PREFIX = "--";
+		try {
+			String BOUNDARY = "AaB03x"; // 数据分隔线
+			String MULTIPART_FORM_DATA = "multipart/form-data";
+
+			URL url = new URL(uploadUrl);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setDoInput(true);// 允许输入
+			conn.setDoOutput(true);// 允许输出
+			conn.setUseCaches(false);// 不使用Cache
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Connection", "Keep-Alive");
+			conn.setRequestProperty("Charset", "UTF-8");
+			conn.setRequestProperty("Content-Type", MULTIPART_FORM_DATA
+					+ "; boundary=" + BOUNDARY);
+
+
+			// http body的字符串
+			StringBuffer body = new StringBuffer();
+
+			Iterator<Map.Entry<String, String>> iter = params.entrySet().iterator();
+			Map.Entry<String, String> entry;
+			String key;
+			String value;
+			while (iter.hasNext()) {
+				entry = iter.next();
+				key = entry.getKey();
+				value = entry.getValue();
+				//System.out.println(key+":"+value);
+				body.append(PREFIX).append(BOUNDARY).append(CRLF);
+				body.append("Content-Disposition: form-data; name=\"").append(key).append("\"").append(CRLF).append(CRLF);
+				body.append(value).append(CRLF);
+			}
+
+			DataOutputStream outStream = new DataOutputStream(
+					conn.getOutputStream());
+			outStream.write(body.toString().getBytes());// 发送表单字段数据
+
+			// 添加原照的jpg----
+			if(file!=null && file.exists()) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(PREFIX).append(BOUNDARY).append(CRLF);
+				// 声明pic字段，文件名为boris.png
+				sb.append("Content-Disposition: form-data; name=\"IconPath\"; filename=\""+file.getName()+"\"\r\n");
+				// 声明上传文件的格式
+				sb.append("Content-Type: image/png\r\n\r\n");
+				outStream.write(sb.toString().getBytes());
+				InputStream inputStream = new FileInputStream(file);
+				int readed = 0;
+				byte[] buffer = new byte[8192];
+				while ((readed = inputStream.read(buffer)) != -1){
+					outStream.write(buffer, 0 , readed);
+				}
+
+				outStream.write(CRLF.getBytes());
+			}
+			// --End 原照的jpg---
+
+			byte[] end_data = (PREFIX + BOUNDARY + "--").getBytes();// 数据结束标志
+			outStream.write(end_data);
+			outStream.flush();
+			int cah = conn.getResponseCode();
+			if (cah != 200) {
+				System.out.println("失败，请检查网络连接！");
+				return;
+			}
+			InputStream is = conn.getInputStream();
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			byte[] data = new byte[1024];
+			int count = -1;
+			while ((count = is.read(data, 0, 1024)) != -1)
+				os.write(data, 0, count);
+			data = null;
+			String result = new String(os.toByteArray(), "UTF-8");
+			outStream.close();
+			conn.disconnect();
+			System.out.println("成功！");
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			System.out.println("失败，请检查您网络是否通畅！");
 		}
 	}
 }
