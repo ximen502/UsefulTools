@@ -33,7 +33,7 @@ public class NetUtil {
 
 	public static final String GET = "GET";
 	public static final String POST = "POST";
-
+	static final String LINE_SEP = System.getProperty("line.separator");
 	/**
 	 * 判断网络是否连通
 	 */
@@ -181,21 +181,20 @@ public class NetUtil {
 		InputStream is = null;
 		InputStreamReader isr = null;
 		try {
+			is = getReqJStream(url, headers);
 			if (singleLine) {// 去除换行
-				isr = new InputStreamReader(getReqJStream(url, headers));
+				isr = new InputStreamReader(is, "UTF-8"/*"gbk"*/);
 				BufferedReader bufReader = new BufferedReader(isr);
 				String tmp = null;
-				result.append(tmp);
 				while ((tmp = bufReader.readLine()) != null) {
+					result.append(tmp);
 				}
 			} else {// 保留换行
-				is = getReqJStream(url, headers);
-				byte[] b = new byte[1024];
-				String temp = null;
-				int len = 0;
-				while ((len = is.read(b)) != -1) {
-					temp = new String(b, 0, len);
-					result.append(temp);
+				isr = new InputStreamReader(is, "UTF-8"/*"gbk"*/);
+				BufferedReader bufReader = new BufferedReader(isr);
+				String tmp = null;
+				while ((tmp = bufReader.readLine()) != null) {
+					result.append(tmp).append(LINE_SEP);
 				}
 			}
 		} catch (SocketTimeoutException e) {
