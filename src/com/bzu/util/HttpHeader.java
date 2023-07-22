@@ -31,4 +31,14 @@ public class HttpHeader {
 	public static String getUsrAgt(){
 		return "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3732.400 QQBrowser/10.5.3819.400";
 	}
+
+	/**
+	 * 返回一个有user-agent的默认header map
+	 * @return
+	 */
+	public static Map<String,String> getHeaders(){
+		Map<String,String> map = new HashMap<>();
+		map.put(User_Agent, getUsrAgt());
+		return map;
+	}
 }
