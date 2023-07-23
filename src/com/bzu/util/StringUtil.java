@@ -26,7 +26,7 @@ public class StringUtil {
      * @param regex 正则表达式
      * @return 匹配到的字符串
      */
-    private List<String> findStr(String input, String regex) {
+    public List<String> findStr(String input, String regex) {
         List<String> list = new ArrayList<>();
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(input);
