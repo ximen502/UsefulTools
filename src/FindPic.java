@@ -56,6 +56,17 @@ public class FindPic {
         }
     }
 
+    int[] find(String smallPath, Rectangle rect, float similar) {
+        try {
+            BufferedImage smallImg = ImageIO.read(new File(smallPath));
+            int[] result = findImageInFullScreen(smallImg, rect, similar);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     int[] find(BufferedImage targetImage){
         return find(targetImage, 0.85f);
     }
@@ -85,6 +96,35 @@ public class FindPic {
                 for (int ty = 0; ty < targetHeight; ty++) {
                     for (int tx = 0; tx < targetWidth; tx++) {
                         int screenPixel = bigImage.getRGB(x + tx, y + ty);
+                        int targetPixel = targetImage.getRGB(tx, ty);
+                        if (!isSimilarPixel(screenPixel, targetPixel, similar)) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (!match) break;
+                }
+                if (match) return new int[]{x, y};
+            }
+        }
+        return null;
+    }
+
+    private int[] findImageInFullScreen(BufferedImage targetImage, Rectangle rect, float similar) {
+        //Robot robot = new Robot();
+        BufferedImage screenshot = robot.createScreenCapture(rect);
+
+        int targetWidth = targetImage.getWidth();
+        int targetHeight = targetImage.getHeight();
+        int screenWidth = screenshot.getWidth();
+        int screenHeight = screenshot.getHeight();
+
+        for (int y = 0; y < screenHeight - targetHeight; y++) {
+            for (int x = 0; x < screenWidth - targetWidth; x++) {
+                boolean match = true;
+                for (int ty = 0; ty < targetHeight; ty++) {
+                    for (int tx = 0; tx < targetWidth; tx++) {
+                        int screenPixel = screenshot.getRGB(x + tx, y + ty);
                         int targetPixel = targetImage.getRGB(tx, ty);
                         if (!isSimilarPixel(screenPixel, targetPixel, similar)) {
                             match = false;
